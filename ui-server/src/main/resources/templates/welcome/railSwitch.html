@@ -1,0 +1,75 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Macazurile care trebuiesc verificate astazi</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <script>
+    function displayFullName(id) {
+        // Creating the XMLHttpRequest object
+        var request = new XMLHttpRequest();
+
+        var controllerText = document.getElementById("id-"+id).value;
+        console.log("xxxxxxxxxx: " + id);
+        console.log("yyyyyyyyy: " + controllerText);
+        // Instantiating the request object
+        request.open("POST", "/railSwitch/checkmark/" + id + "/" + controllerText);
+
+        // Defining event listener for readystatechange event
+        request.onreadystatechange = function() {
+            // Check if the request is compete and was successful
+            if(this.readyState === 4 && this.status === 200) {
+                // Inserting the response from server into an HTML element
+                document.getElementById("result").innerHTML = this.responseText;
+                document.getElementById("id-"+id).disabled = true;
+                document.getElementById("button-"+id).disabled = true;
+            }
+        };
+
+        // Sending the request to the server
+        request.send();
+    }
+    </script>
+</head>
+<body>
+<div>
+    <b>Macazurile care trebuiesc verificate astazi pt lista de verificari nr. </b>
+    <span th:text="${groupIdOfRailswitches}" />
+    <br> <span>(pt a schimba lista de verificari, ruleaza din browser http://localhost:8092/to_be_check_switch/set_CurrentGroupId?groupId=2 - groupId este de la 1 la 6) </span>
+</div>
+<br>
+
+<div class="row">
+    <div class="col-md-6">
+        <table class="table"  border="2">
+            <thead>
+            <tr>
+                <th> Nume Macaz </th>
+                <th> Verificare </th>
+                <th> Actiune </th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:if="${railSwitches.empty}">
+                <td colspan="3"> Nu a fost trimisa lista cu macazuri de verificat. <br>Ruleaza din browser: http://localhost:8091/rabbitmq/partitionate</td>
+            </tr>
+            <tr th:each="railSwitch : ${railSwitches}">
+                <td><span th:text="'Macaz BR '+${railSwitch.id}"> Nume Macaz </span></td>
+                <td><input type="text" th:value="${railSwitch.checkedComment}" th:disabled="${railSwitch.checked}" th:id="'id-'+${railSwitch.id}" /></td>
+                <!--<td><span th:text="${railSwitch.checkedComment}" th:disabled="${railSwitch.checked}"> Verificare </span></td>-->
+                <td>
+                    <button type="button" th:disabled="${railSwitch.checked}" th:id="'button-'+${railSwitch.id}"
+                            th:attr="onclick='displayFullName(\'' + ${railSwitch.id}+ '\');'" th:title="'Trimite pt macaz BR '+${railSwitch.id}">Trimite
+                    </button>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+    <br>
+    <div id="result">
+        <p> </p>
+    </div>
+</div>
+
+</body>
+</html>
